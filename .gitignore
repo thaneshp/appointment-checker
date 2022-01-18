@@ -1,3 +1,14 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Keys file
 keys.py
-__pycache__\
+
+# Log output file
 appointment-checker-log.txt
+
+# Mac OS file containing system config
+.DS_Store
+
+
