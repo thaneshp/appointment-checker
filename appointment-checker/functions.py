@@ -10,23 +10,25 @@ import time
 CHROME_DRIVER_PATH = keys.DRIVER_PATH
 TARGET_WEBSITE = keys.TARGET_WEBSITE
 
-# Initialising values to be used for select elements.
+# Values to be used in pre-filling select elements.
 FIRST_SELECT_ELEMENT_ID = 'jim'
 SECOND_SELECT_ELEMENT_ID = 'urusan'
 FIRST_SELECT_ELEMENT_VALUE = '4'
 SECOND_SELECT_ELEMENT_VALUE = '6'
 
-# Initialising Chrome WebDriver
+MONTH_INDEX_OFFSET = 1
+
+# Function to initialise Chrome WebDriver.
 def initialise_webdriver():
     service = Service(CHROME_DRIVER_PATH)
     options = webdriver.ChromeOptions()
-    # options.add_argument('--headless')
+    options.add_argument('--headless')
     driver = webdriver.Chrome(service=service, options=options)
     driver.get(TARGET_WEBSITE)
     
     return driver
 
-# Function to fill in first two select inputs.
+# Function to pre-fill in first two select inputs.
 def prefill_select_options(driver):
     Select(driver.find_element_by_id(FIRST_SELECT_ELEMENT_ID)
            ).select_by_value(FIRST_SELECT_ELEMENT_VALUE)
@@ -40,24 +42,25 @@ def click_date_input(driver):
     dateInput.click()
 
 # Function to determine if given month has any available dates.
-def find_available_date_in_month(driver, month, dateDropdownOptions):
+def find_available_date_in_month(driver, month_index, dateDropdownOptions):
 
     all_dates = driver.find_elements(
         By.XPATH, "//table[@class='ui-datepicker-calendar']//td/span | //table[@class='ui-datepicker-calendar']//td/a")
 
+    todays_date = datetime.today()
+
     # Iterate through all dates to determine an available date.
     for date in all_dates:
-        date1 = "{date}/{month}/2022".format(date=date.text,month=month+1)
-        datetime_obj = datetime.strptime(date1, "%d/%m/%Y")
-        todays_date = datetime.today()
+        curr_date_str = "{date}/{month}/2022".format(date=date.text,month=month_index+MONTH_INDEX_OFFSET)
+        curr_date = datetime.strptime(curr_date_str, "%d/%m/%Y")
 
-        #Skip checking dates prior to today's date.
-        if (datetime_obj.date() < todays_date.date()):
-            print(datetime_obj.date())
+        # Skip dates prior to today's date.
+        if (curr_date.date() < todays_date.date()):
             continue
 
+        # Determine if date is clickable.
         if (date.tag_name == 'a'):
-            foundDate = dateDropdownOptions[month] + \
+            foundDate = dateDropdownOptions[month_index] + \
                 " " + date.text + " " + "2022"
             return foundDate
 
@@ -65,10 +68,14 @@ def find_available_date_in_month(driver, month, dateDropdownOptions):
 
 # Function to find an available date given a list of months.
 def find_available_date(driver, list_of_months):
-    for j in range(len(list_of_months)):
+
+    # Iterate through all months to determine if it contains an available date.
+    for month_index in range(len(list_of_months)):
+        # Click on the select option of the current month.
         Select(driver.find_element(
-            By.XPATH, "//select[@class='ui-datepicker-month']")).select_by_value(str(j))
-        if available_date := find_available_date_in_month(driver, j, list_of_months):
+            By.XPATH, "//select[@class='ui-datepicker-month']")).select_by_value(str(month_index))
+
+        if available_date := find_available_date_in_month(driver, month_index, list_of_months):
             alert_subscribers(available_date)
             break
         else:
