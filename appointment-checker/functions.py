@@ -8,7 +8,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from datetime import datetime
 from helpers import *
-import time
 
 CHROME_DRIVER_PATH = keys.DRIVER_PATH
 TARGET_WEBSITE = keys.TARGET_WEBSITE
@@ -18,7 +17,7 @@ FIRST_SELECT_ELEMENT_ID = 'jim'
 SECOND_SELECT_ELEMENT_ID = 'urusan'
 FIRST_SELECT_ELEMENT_VALUE = '4'
 SECOND_SELECT_ELEMENT_VALUE = '6'
-DELAY = 2
+DELAY = 3
 
 MONTH_INDEX_OFFSET = 1
 
@@ -32,19 +31,20 @@ def initialise_webdriver():
 
     return driver
 
-# Function to pre-fill in first two select inputs.
+# Function to pre-fill location & transaction input fields.
 def prefill_select_options(driver):
-    first_select_input = driver.find_element_by_id(FIRST_SELECT_ELEMENT_ID)
-    Select(first_select_input).select_by_value(FIRST_SELECT_ELEMENT_VALUE)
+    location_field = driver.find_element_by_id(FIRST_SELECT_ELEMENT_ID)
+    Select(location_field).select_by_value(FIRST_SELECT_ELEMENT_VALUE)
 
+    # Attempt to pre-fill transaction input field.
     try:
-        second_select_input = WebDriverWait(driver, DELAY).until(
+        transaction_field = WebDriverWait(driver, DELAY).until(
             EC.presence_of_element_located((By.ID, SECOND_SELECT_ELEMENT_ID)))
-        Select(second_select_input).select_by_value(
+        Select(transaction_field ).select_by_value(
             SECOND_SELECT_ELEMENT_VALUE)
     except TimeoutException:
-        print("Loading took too much time!")
-
+        print("Transaction field failed to load values in time.")
+        driver.quit()
 
 # Function to click on the date input.
 def click_date_input(driver):
@@ -52,8 +52,6 @@ def click_date_input(driver):
     dateInput.click()
 
 # Function to determine if given month has any available dates.
-
-
 def find_available_date_in_month(driver, month_index, dateDropdownOptions):
 
     all_dates = driver.find_elements(
@@ -84,7 +82,7 @@ def find_available_date(driver, list_of_months):
 
     # Iterate through all months to determine if it contains an available date.
     for month_index in range(len(list_of_months)):
-        # Click on the select option of the current month.
+        # Click on the select option of the given month.
         Select(driver.find_element(
             By.XPATH, "//select[@class='ui-datepicker-month']")).select_by_value(str(month_index))
 
@@ -94,13 +92,13 @@ def find_available_date(driver, list_of_months):
         else:
             continue
 
-# Function to send email and sms notification.
+# Function to alert subscribers via email & sms.
 def alert_subscribers(available_date):
 
     send_email_alert(available_date)
     send_sms_alert(available_date)
 
-# Function to display date & time the script completed.
+# Function to display date & time of script completion.
 def display_completion_time():
     now = datetime.now()
     dt_string = now.strftime("%d/%m/%Y %H:%M:%S")

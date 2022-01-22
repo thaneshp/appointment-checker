@@ -14,20 +14,19 @@ ACCOUNT_SID = keys.ACCOUNT_SID
 AUTH_TOKEN = keys.AUTH_TOKEN
 TWILIO_PHONE_NUMBER = keys.PHONE_NUMBER
 
-# Link of website used to notify subscribers.
 TARGET_WEBSITE = keys.TARGET_WEBSITE
 
-# Retrieve all months from date-picker and store in array.
+# Helper function to retrieve all months from UI and store in array.
 def get_all_months(driver):
-    dateDropdownOptions = Select(driver.find_element(
+    list_of_months = Select(driver.find_element(
         By.XPATH, "//select[@class='ui-datepicker-month']")).options
 
-    for i in range(len(dateDropdownOptions)):
-        dateDropdownOptions[i] = dateDropdownOptions[i].text
+    for i in range(len(list_of_months)):
+        list_of_months[i] = list_of_months[i].text
 
-    return dateDropdownOptions
+    return list_of_months
 
-# Helper function to email notification to subscribers.
+# Helper function to email subcribers with available date.
 def send_email_alert(available_date):
 
     message = "Available Appointment Found on {date}.\n\nVist {link} to book your appointment.".format(date=available_date, link=TARGET_WEBSITE)
@@ -44,7 +43,7 @@ def send_email_alert(available_date):
     gmailServer.send_message(msg)
     gmailServer.quit()
 
-# Helper function to sms notification to subscribers.
+# Helper function to sms notification with available date.
 def send_sms_alert(available_date):
 
     message = "AVAILABLE APPOINTMENT FOUND - {date} - {link}".format(date=available_date, link=TARGET_WEBSITE)
