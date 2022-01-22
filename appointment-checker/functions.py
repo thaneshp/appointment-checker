@@ -1,5 +1,8 @@
 import keys
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
@@ -15,6 +18,7 @@ FIRST_SELECT_ELEMENT_ID = 'jim'
 SECOND_SELECT_ELEMENT_ID = 'urusan'
 FIRST_SELECT_ELEMENT_VALUE = '4'
 SECOND_SELECT_ELEMENT_VALUE = '6'
+DELAY = 2
 
 MONTH_INDEX_OFFSET = 1
 
@@ -22,19 +26,25 @@ MONTH_INDEX_OFFSET = 1
 def initialise_webdriver():
     service = Service(CHROME_DRIVER_PATH)
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
+    # options.add_argument('--headless')
     driver = webdriver.Chrome(service=service, options=options)
     driver.get(TARGET_WEBSITE)
-    
+
     return driver
 
 # Function to pre-fill in first two select inputs.
 def prefill_select_options(driver):
-    Select(driver.find_element_by_id(FIRST_SELECT_ELEMENT_ID)
-           ).select_by_value(FIRST_SELECT_ELEMENT_VALUE)
-    time.sleep(3)
-    Select(driver.find_element_by_id(SECOND_SELECT_ELEMENT_ID)
-           ).select_by_value(SECOND_SELECT_ELEMENT_VALUE)
+    first_select_input = driver.find_element_by_id(FIRST_SELECT_ELEMENT_ID)
+    Select(first_select_input).select_by_value(FIRST_SELECT_ELEMENT_VALUE)
+
+    try:
+        second_select_input = WebDriverWait(driver, DELAY).until(
+            EC.presence_of_element_located((By.ID, SECOND_SELECT_ELEMENT_ID)))
+        Select(second_select_input).select_by_value(
+            SECOND_SELECT_ELEMENT_VALUE)
+    except TimeoutException:
+        print("Loading took too much time!")
+
 
 # Function to click on the date input.
 def click_date_input(driver):
@@ -42,6 +52,8 @@ def click_date_input(driver):
     dateInput.click()
 
 # Function to determine if given month has any available dates.
+
+
 def find_available_date_in_month(driver, month_index, dateDropdownOptions):
 
     all_dates = driver.find_elements(
@@ -51,7 +63,8 @@ def find_available_date_in_month(driver, month_index, dateDropdownOptions):
 
     # Iterate through all dates to determine an available date.
     for date in all_dates:
-        curr_date_str = "{date}/{month}/2022".format(date=date.text,month=month_index+MONTH_INDEX_OFFSET)
+        curr_date_str = "{date}/{month}/2022".format(
+            date=date.text, month=month_index+MONTH_INDEX_OFFSET)
         curr_date = datetime.strptime(curr_date_str, "%d/%m/%Y")
 
         # Skip dates prior to today's date.
