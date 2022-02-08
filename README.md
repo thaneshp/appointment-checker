@@ -16,7 +16,7 @@ The appointment checker script works in the same way a person would navigate the
 
 4. Cycle through the calendar, checking for any available dates.
 
-For a more in-depth explanation, including technical details; check out my blog here:
+For a more in-depth explanation, including technical details; check out my blog here: https://blog.thanesh.io/Writing-an-Appointment-Checker/
 
 ![simple-diagram](./simple-diagram.jpg)
 
